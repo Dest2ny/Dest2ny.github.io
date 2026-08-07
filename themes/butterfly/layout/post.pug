@@ -2,8 +2,7 @@ extends includes/layout.pug
 
 block content
   #post
-    if top_img === false
-      include includes/header/post-info.pug
+    include includes/header/post-info.pug
 
     article#article-container.container.post-content
       if theme.noticeOutdate.enable && page.noticeOutdate !== false

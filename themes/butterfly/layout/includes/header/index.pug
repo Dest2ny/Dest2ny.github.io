@@ -30,7 +30,7 @@ header#page-header(class=`${headerClassName + isFixedClass}` style=bg_img)
   include ./nav.pug
   if top_img !== false
     if globalPageType === 'post'
-      include ./post-info.pug
+      //- post-info is rendered inside the post card (see layout/post.pug)
     else if globalPageType === 'home'
       #site-info
         h1#site-title=config.title
