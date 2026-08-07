@@ -18,10 +18,11 @@ nav:
   fixed: false
 
 menu:
-  # Home: / || fas fa-home
-  # List||fas fa-list:
-  #   Music: /music/ || fas fa-music
-  #   Movie: /movies/ || fas fa-video
+  主页: / || fas fa-home
+  博客||fas fa-blog:
+    时间归档: /archives/ || fas fa-archive
+    分类: /categories/ || fas fa-folder-open
+  关于我: /about/ || fas fa-user
 
 # --------------------------------------
 # Code Blocks Settings
@@ -474,7 +475,7 @@ math:
 search:
   # Choose: algolia_search / local_search / docsearch
   # leave it empty if you don't need search
-  use:
+  use: local_search
   placeholder:
 
   # Algolia Search
@@ -792,8 +793,8 @@ text_align_justify: false
 
 # Add a mask to the header and footer
 mask:
-  header: true
-  footer: true
+  header: false
+  footer: false
 
 # Loading Animation
 preloader:
@@ -1067,6 +1068,8 @@ inject:
         /* 内容卡片半透明，悬浮于背景之上（亮/暗模式） */
         :root { --card-bg: rgba(255, 255, 255, .85); }
         [data-theme='dark'] { --card-bg: rgba(18, 18, 18, .85); }
+        /* 页脚透明，露出固定背景图（原为蓝色） */
+        #footer { background: transparent !important; }
       </style>
   bottom:
     # - <script src="xxxx"></script>
