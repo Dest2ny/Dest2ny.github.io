@@ -66,7 +66,7 @@ disable_top_img: false
 default_top_img:
 
 # The banner image of index page
-index_img:
+index_img: /img/background.png
 
 # The banner image of archive page
 archive_img:
@@ -1058,6 +1058,16 @@ css_prefix: true
 inject:
   head:
     # - <link rel="stylesheet" href="/xxx.css">
+    - |-
+      <style>
+        /* 背景图永久固定，不随页面滚动 */
+        #web_bg { background-attachment: fixed !important; }
+        /* 所有页面 banner 透明，露出固定背景图 */
+        #page-header { background: transparent !important; }
+        /* 内容卡片半透明，悬浮于背景之上（亮/暗模式） */
+        :root { --card-bg: rgba(255, 255, 255, .85); }
+        [data-theme='dark'] { --card-bg: rgba(18, 18, 18, .85); }
+      </style>
   bottom:
     # - <script src="xxxx"></script>
 
