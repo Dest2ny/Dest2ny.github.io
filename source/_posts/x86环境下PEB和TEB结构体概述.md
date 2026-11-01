@@ -301,7 +301,7 @@ NtGlobalFlag;                    /* 0x68 */
 ```
 BOOL WINAPI IsDebuggerPresent(void);
 ```
-顾名思义，该函数用来判断当前进程是否处于调试状态，判断根据就是读取PEB中的BeingDebugged这个值**（是，则返回1；否，则返回0）** ，该函数在ida中反汇编如下
+顾名思义，该函数用来判断当前进程是否处于调试状态，判断根据就是读取PEB中的BeingDebugged这个值（**是，则返回1；否，则返回0**），该函数在ida中反汇编如下
 ![](Pasted_image_20261101135047.png)
 这个就是最简单的一种反调试方式，但是很多调试器都会把 PEB->BeingDebugged 的值修改为0，这样就可以轻松绕过该反调试
 #### ImageBaseAddress:
