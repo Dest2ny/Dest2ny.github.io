@@ -6,6 +6,7 @@ tags:
 categories: reverse
 cover:
 description:
+permalink: posts/x86-peb-teb-overview/
 ---
 
 ## 摘要
