@@ -1,5 +1,5 @@
 ---
-title: x86环境下PEB和TEB结构体概述
+title: Windows PEB和TEB结构体概述
 date: 2026-10-31 17:57:38
 tags:
   - windows
@@ -11,7 +11,7 @@ permalink: posts/x86-peb-teb-overview/
 
 ## 摘要
 
-PEB(进程环境块)与TEB(线程环境块)是windows中的重要数据结构，也是windows逆向工程和反调试相关的基础。
+PEB(进程环境块)与TEB(线程环境块)是windows中的重要数据结构，也是windows逆向工程和反调试相关的基础。下文主要研究环境为x86
 
 ## 正文
 
@@ -302,7 +302,7 @@ NtGlobalFlag;                    /* 0x68 */
 ```
 BOOL WINAPI IsDebuggerPresent(void);
 ```
-顾名思义，该函数用来判断当前进程是否处于调试状态，判断根据就是读取PEB中的BeingDebugged这个值（**是，则返回1；否，则返回0**），该函数在ida中反汇编如下
+顾名思义，该函数用来判断当前进程是否处于调试状态，判断根据就是读取PEB中的BeingDebugged这个值（**是，则返回1；否，则返回0**），该函数在ida中反汇编如下（此处为x64环境）
 ![](Pasted_image_20261101135047.png)
 这个就是最简单的一种反调试方式，但是很多调试器都会把 PEB->BeingDebugged 的值修改为0，这样就可以轻松绕过该反调试
 #### ImageBaseAddress:
