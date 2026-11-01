@@ -1,8 +1,8 @@
 ---
-title: PEB和TEB结构体概述
+title: x86环境下PEB和TEB结构体概述
 date: 2026-10-31 17:57:38
 tags:
-  - -windows
+  - windows
 categories: reverse
 cover:
 description:
@@ -202,10 +202,10 @@ int main() {
 `ntdll.dll` 是 Windows 底层的核心动态链接库，包含了大量的原生 API，这里我们需要用到它导出表的`NtCurrentTeb`函数
 用 MinGW-w64 i686 将该源码编译成PE32，运行之后打印
 TEB addr (via GetProcAddress): 008D6000
-发现实际并无卵用，然后可以在x32dbg中调试
+发现实际并无啥用，然后可以在x32dbg中调试
 ![](x32dbg.png)
 可以看到，NtCurrentTeb()函数的内部代码非常简单，只返回 FS:[0x18] 的值
-其中，FS是段寄存器，通过持有SDT的索引间接指向TEB地址，于是我们得到
+其中，FS是段寄存器，(x64的话对应的是GS段寄存器)间接指向TEB地址，于是我们得到
 ```
 FS:[0x18] = TEB起始地址
 ```
@@ -289,3 +289,58 @@ typedef struct _PEB32 {
 } PEB32;
 ```
 我们主要研究以下结构体成员：
+```
+BeingDebugged;                   /* 0x02 */
+ImageBaseAddress;                /* 0x08 */
+Ldr;                             /* 0x0C */
+ProcessHeap;                     /* 0x18 */
+NtGlobalFlag;                    /* 0x68 */
+```
+#### BeingDebugged：
+在最近的windows大版本中（win7之后？），KernelBase.dll 中（之前是在Kernel32.dll）有一个非常重要的api函数
+```
+BOOL WINAPI IsDebuggerPresent(void);
+```
+顾名思义，该函数用来判断当前进程是否处于调试状态，判断根据就是读取PEB中的BeingDebugged这个值**（是，则返回1；否，则返回0）** ，该函数在ida中反汇编如下
+![](Pasted_image_20261101135047.png)
+这个就是最简单的一种反调试方式，但是很多调试器都会把 PEB->BeingDebugged 的值修改为0，这样就可以轻松绕过该反调试
+#### ImageBaseAddress:
+该成员指向主模块（通常是.exe文件）在内存中的实际加载基址
+我们要访问这个成员，需要
+```
+HMODULE __stdcall GetModuleHandleW(LPCWSTR SourceString)
+```
+这个windows api来访问它，函数反编译如下
+![[Pasted image 20261101141037.png]]
+#### Ldr
+这是一个指向 \_PEB_LDR_DATA 结构体的指针，该结构体的大致内容如下
+```
+typedef struct _PEB_LDR_DATA32 {
+    uint32_t      Length;                          /* 0x00 */
+    uint8_t       Initialized;                     /* 0x04 */
+    uint8_t       Padding0[3];                     /* 0x05 */
+    uint32_t      SsHandle;                        /* 0x08 */
+    LIST_ENTRY32  InLoadOrderModuleList;           /* 0x0C */
+    LIST_ENTRY32  InMemoryOrderModuleList;         /* 0x14 */
+    LIST_ENTRY32  InInitializationOrderModuleList; /* 0x1C */
+    uint32_t      EntryInProgress;                 /* 0x24 */
+    uint8_t       ShutdownInProgress;              /* 0x28 */
+    uint8_t       Padding1[3];                     /* 0x29 */
+    uint32_t      ShutdownThreadId;                /* 0x2C */
+} PEB_LDR_DATA32;
+```
+这里面有三个 \_LIST\_ENTRY 类型的成员，这个结构体长这样：
+```
+typedef struct _LIST_ENTRY {
+	struct _LIST_ENTRY *Flink;
+	struct _LIST_ENTRY *Blink;
+}   _LIST_ENTRY, *PLIST_ENTRY;
+```
+这个大概是提供了一个双向链表的机制，查阅了一下，上面三条双向链表的内容：
+- `InLoadOrderModuleList`含义：**模块被加载的顺序**。主 EXE 排第一，之后是按依赖关系加载的 DLL。
+- `InMemoryOrderModuleList`含义：**模块在虚拟内存中的地址顺序**（基址从低到高）
+- `InInitializationOrderModuleList`含义：**模块 `DllMain` 被调用的顺序**。
+####  ProcessHeap
+指针，指向进程的默认堆，这个堆的头部（\_HEAP）结构体中，有两个字段 `Flags` 和 `ForceFlags` 和反调试相关
+####  NtGlobalFlag
+这个`DWORD`的字段是更加直接的一个调试标志位，在进程正常运行时，该值通常为`0`，但是如果进程由调试器创建的话，它的值会被设置为`0x70`（常见典型值）
